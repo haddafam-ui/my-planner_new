@@ -544,6 +544,96 @@
       font-weight: 900;
     }
 
+    .review-form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .review-form .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .review-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .review-card-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .memory-card {
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: #ffffff;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .memory-card.due {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+    }
+
+    .memory-card.mastered {
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+      opacity: 0.9;
+    }
+
+    .memory-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .memory-title {
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .memory-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .memory-body {
+      font-size: 13px;
+      line-height: 1.5;
+      display: grid;
+      gap: 5px;
+    }
+
+    .memory-body b {
+      color: #111827;
+    }
+
+    .memory-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .memory-actions button {
+      padding: 8px 9px;
+      font-size: 12px;
+    }
+
+    .small-section-title {
+      margin: 12px 0 8px;
+      font-size: 14px;
+      font-weight: 900;
+      color: #374151;
+    }
+
     .selected-date-title {
       font-size: 18px;
       font-weight: 900;
@@ -810,6 +900,91 @@
         </article>
 
         <article class="card">
+          <h2>오답 암기카드 만들기</h2>
+          <p class="subtle">문제를 틀린 이유를 “다음에 안 틀리는 판단문장”으로 압축해서 저장합니다. 카드 수 제한은 없습니다.</p>
+          <div class="review-form">
+            <div class="two-col">
+              <label>
+                과목
+                <select id="cardSubjectSelect">
+                  <option value="재무회계">재무회계</option>
+                  <option value="원가관리">원가관리</option>
+                  <option value="세무회계">세무회계</option>
+                  <option value="세법학">세법학</option>
+                  <option value="재정학">재정학</option>
+                  <option value="행정소송법">행정소송법</option>
+                  <option value="기타">기타</option>
+                </select>
+              </label>
+              <label>
+                오류유형
+                <select id="cardErrorTypeSelect">
+                  <option value="개념혼동">개념혼동</option>
+                  <option value="공식/산식 암기부족">공식/산식 암기부족</option>
+                  <option value="조건누락">조건누락</option>
+                  <option value="분개/처리방향 오류">분개/처리방향 오류</option>
+                  <option value="세무조정 오류">세무조정 오류</option>
+                  <option value="계산실수">계산실수</option>
+                  <option value="자료해석 오류">자료해석 오류</option>
+                  <option value="시간부족">시간부족</option>
+                  <option value="기타">기타</option>
+                </select>
+              </label>
+            </div>
+            <div class="two-col">
+              <label>
+                출처 / Day
+                <input id="cardSourceInput" placeholder="예: 재무회계 Day 1, Ch. 금융상품" />
+              </label>
+              <label>
+                문제번호
+                <input id="cardProblemInput" placeholder="예: 2-1, 10번, 객관식 p.35" />
+              </label>
+            </div>
+            <label>
+              내가 왜 틀렸나?
+              <textarea id="cardMistakeInput" placeholder="예: FVOCI 채무상품의 공정가치 변동과 이후 현금흐름/상각후원가 계산을 섞었다."></textarea>
+            </label>
+            <label>
+              다음에 외울 한 문장 / 판단 공식
+              <textarea id="cardRuleInput" placeholder="예: FVOCI 채무상품은 공정가치 변동은 OCI, 이자수익·손상은 상각후원가 기준."></textarea>
+            </label>
+            <label>
+              다시 나왔을 때 체크할 질문
+              <textarea id="cardTriggerInput" placeholder="예: 금융상품인가 유형자산인가? 평가손익은 OCI인가 PL인가? 이후 계산 기준은 무엇인가?"></textarea>
+            </label>
+            <label>
+              헷갈리는 비교대상
+              <textarea id="cardContrastInput" placeholder="예: 재평가모형은 재평가 후 장부금액 기준으로 이후 감가상각한다."></textarea>
+            </label>
+            <button class="primary" id="addMemoryCardBtn">암기카드 저장</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>오늘 복습카드</h2>
+          <div class="review-summary">
+            <div class="metric">
+              <div class="label">오늘 복습</div>
+              <div class="value" id="dueCardCount">0</div>
+            </div>
+            <div class="metric">
+              <div class="label">진행중</div>
+              <div class="value" id="activeCardCount">0</div>
+            </div>
+            <div class="metric">
+              <div class="label">암기완료</div>
+              <div class="value" id="masteredCardCount">0</div>
+            </div>
+          </div>
+          <p class="tiny">복습 간격: 당일 → D+1 → D+3 → D+7 → D+14 → D+30. 틀리면 다시 당일 카드로 내려갑니다.</p>
+          <div class="small-section-title">오늘 볼 카드</div>
+          <div class="review-card-list" id="dueCardsList"></div>
+          <div class="small-section-title">최근 만든 카드</div>
+          <div class="review-card-list" id="recentCardsList"></div>
+        </article>
+
+        <article class="card">
           <h2>회독 사이클</h2>
           <div class="status">
             <strong id="cycleToday">오늘은 24일 회독 사이클 Day -</strong><br />
@@ -869,10 +1044,30 @@
       "24": { financial: "Day 24는 재무회계 23일 완성 후 예비/오답정리/부족 챕터 보충", cost: "8-14, 8-16, 9-16, 13-12", tax: "[법인] (완료) / [소득] Ch.9-20, Ch.9-22, Ch.2-11 / [부가] Ch.3-16, Ch.3-17" }
     };
 
+    const REVIEW_STEPS = [
+      { label: "당일", days: 0 },
+      { label: "D+1", days: 1 },
+      { label: "D+3", days: 3 },
+      { label: "D+7", days: 7 },
+      { label: "D+14", days: 14 },
+      { label: "D+30", days: 30 }
+    ];
+
     const pad = (n) => String(n).padStart(2, "0");
 
     function dateKey(date) {
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function addDaysKey(key, days) {
+      const date = parseDateKey(key);
+      date.setDate(date.getDate() + days);
+      return dateKey(date);
+    }
+
+    function makeId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return `card-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     }
 
     function parseDateKey(key) {
@@ -927,6 +1122,7 @@
     function loadState() {
       const fallback = {
         daily: {},
+        cards: [],
         activeSession: null,
         settings: {
           startDate: "2026-05-19",
@@ -946,6 +1142,7 @@
           ...parsed,
           settings: { ...fallback.settings, ...(parsed.settings || {}) },
           daily: parsed.daily || {},
+          cards: Array.isArray(parsed.cards) ? parsed.cards : [],
           activeSession: parsed.activeSession || null
         };
       } catch (error) {
@@ -1004,6 +1201,20 @@
       financialPlanDetail: document.getElementById("financialPlanDetail"),
       costPlanDetail: document.getElementById("costPlanDetail"),
       progressAssessmentBox: document.getElementById("progressAssessmentBox"),
+      cardSubjectSelect: document.getElementById("cardSubjectSelect"),
+      cardErrorTypeSelect: document.getElementById("cardErrorTypeSelect"),
+      cardSourceInput: document.getElementById("cardSourceInput"),
+      cardProblemInput: document.getElementById("cardProblemInput"),
+      cardMistakeInput: document.getElementById("cardMistakeInput"),
+      cardRuleInput: document.getElementById("cardRuleInput"),
+      cardTriggerInput: document.getElementById("cardTriggerInput"),
+      cardContrastInput: document.getElementById("cardContrastInput"),
+      addMemoryCardBtn: document.getElementById("addMemoryCardBtn"),
+      dueCardCount: document.getElementById("dueCardCount"),
+      activeCardCount: document.getElementById("activeCardCount"),
+      masteredCardCount: document.getElementById("masteredCardCount"),
+      dueCardsList: document.getElementById("dueCardsList"),
+      recentCardsList: document.getElementById("recentCardsList"),
       saveDayBtn: document.getElementById("saveDayBtn"),
       cycleToday: document.getElementById("cycleToday"),
       cycleText: document.getElementById("cycleText"),
@@ -1403,6 +1614,145 @@
       updatePlanPreview();
     }
 
+    function createMemoryCard() {
+      const subject = els.cardSubjectSelect.value;
+      const source = els.cardSourceInput.value.trim();
+      const problem = els.cardProblemInput.value.trim();
+      const mistake = els.cardMistakeInput.value.trim();
+      const rule = els.cardRuleInput.value.trim();
+      const trigger = els.cardTriggerInput.value.trim();
+      const contrast = els.cardContrastInput.value.trim();
+      const errorType = els.cardErrorTypeSelect.value;
+
+      if (!mistake || !rule) {
+        alert("'내가 왜 틀렸나?'와 '다음에 외울 한 문장'은 반드시 입력해주세요.");
+        return;
+      }
+
+      const nowKey = todayKey();
+      const card = {
+        id: makeId(),
+        subject,
+        errorType,
+        source,
+        problem,
+        mistake,
+        rule,
+        trigger,
+        contrast,
+        createdAt: nowKey,
+        nextDueDate: nowKey,
+        intervalIndex: 0,
+        reviews: [],
+        lapses: 0,
+        status: "active"
+      };
+
+      state.cards = Array.isArray(state.cards) ? state.cards : [];
+      state.cards.unshift(card);
+      saveState();
+
+      els.cardSourceInput.value = "";
+      els.cardProblemInput.value = "";
+      els.cardMistakeInput.value = "";
+      els.cardRuleInput.value = "";
+      els.cardTriggerInput.value = "";
+      els.cardContrastInput.value = "";
+      renderReviewSystem();
+    }
+
+    function reviewMemoryCard(id, result) {
+      const card = state.cards.find((item) => item.id === id);
+      if (!card) return;
+      const nowKey = todayKey();
+      card.reviews = Array.isArray(card.reviews) ? card.reviews : [];
+      card.reviews.push({ date: nowKey, result });
+
+      if (result === "delete") {
+        state.cards = state.cards.filter((item) => item.id !== id);
+        saveState();
+        renderReviewSystem();
+        return;
+      }
+
+      if (result === "mastered") {
+        card.status = "mastered";
+        card.nextDueDate = null;
+        saveState();
+        renderReviewSystem();
+        return;
+      }
+
+      card.status = "active";
+      if (result === "again") {
+        card.intervalIndex = 0;
+        card.nextDueDate = nowKey;
+        card.lapses = (card.lapses || 0) + 1;
+      } else if (result === "hard") {
+        card.intervalIndex = Math.max(1, Number(card.intervalIndex) || 0);
+        card.nextDueDate = addDaysKey(nowKey, 1);
+      } else if (result === "good") {
+        card.intervalIndex = Math.min((Number(card.intervalIndex) || 0) + 1, REVIEW_STEPS.length - 1);
+        card.nextDueDate = addDaysKey(nowKey, REVIEW_STEPS[card.intervalIndex].days);
+      } else if (result === "easy") {
+        card.intervalIndex = Math.min((Number(card.intervalIndex) || 0) + 2, REVIEW_STEPS.length - 1);
+        card.nextDueDate = addDaysKey(nowKey, REVIEW_STEPS[card.intervalIndex].days);
+      }
+
+      saveState();
+      renderReviewSystem();
+    }
+
+    function cardHtml(card, isDue) {
+      const stage = REVIEW_STEPS[Math.min(Number(card.intervalIndex) || 0, REVIEW_STEPS.length - 1)]?.label || "당일";
+      const statusClass = card.status === "mastered" ? "mastered" : isDue ? "due" : "";
+      return `
+        <div class="memory-card ${statusClass}" data-card-id="${escapeHtml(card.id)}">
+          <div class="memory-head">
+            <div>
+              <div class="memory-title">${escapeHtml(card.subject || "기타")} · ${escapeHtml(card.errorType || "오류")}</div>
+              <div class="memory-meta">${escapeHtml(card.source || "출처 미입력")} ${card.problem ? `· ${escapeHtml(card.problem)}` : ""}<br />다음 복습: ${escapeHtml(card.nextDueDate || "완료")} · 단계: ${escapeHtml(stage)} · 실패 ${Number(card.lapses) || 0}회</div>
+            </div>
+            <span class="pill">${card.status === "mastered" ? "완료" : isDue ? "오늘" : "대기"}</span>
+          </div>
+          <div class="memory-body">
+            <div><b>틀린 이유:</b> ${escapeHtml(card.mistake || "-")}</div>
+            <div><b>외울 문장:</b> ${escapeHtml(card.rule || "-")}</div>
+            ${card.trigger ? `<div><b>체크 질문:</b> ${escapeHtml(card.trigger)}</div>` : ""}
+            ${card.contrast ? `<div><b>비교대상:</b> ${escapeHtml(card.contrast)}</div>` : ""}
+          </div>
+          <div class="memory-actions">
+            <button class="danger" data-action="again">다시 틀림</button>
+            <button class="ghost" data-action="hard">어려움</button>
+            <button class="green" data-action="good">맞힘</button>
+            <button class="purple" data-action="easy">쉬움</button>
+            <button class="green" data-action="mastered">암기완료</button>
+            <button class="ghost" data-action="delete">삭제</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderReviewSystem() {
+      state.cards = Array.isArray(state.cards) ? state.cards : [];
+      const nowKey = todayKey();
+      const activeCards = state.cards.filter((card) => card.status !== "mastered");
+      const masteredCards = state.cards.filter((card) => card.status === "mastered");
+      const dueCards = activeCards.filter((card) => !card.nextDueDate || card.nextDueDate <= nowKey);
+      const recentCards = state.cards.slice(0, 6);
+
+      els.dueCardCount.textContent = String(dueCards.length);
+      els.activeCardCount.textContent = String(activeCards.length);
+      els.masteredCardCount.textContent = String(masteredCards.length);
+
+      els.dueCardsList.innerHTML = dueCards.length
+        ? dueCards.map((card) => cardHtml(card, true)).join("")
+        : `<div class="status good">오늘 복습할 암기카드가 없습니다.</div>`;
+      els.recentCardsList.innerHTML = recentCards.length
+        ? recentCards.map((card) => cardHtml(card, card.status !== "mastered" && (!card.nextDueDate || card.nextDueDate <= nowKey))).join("")
+        : `<div class="status">아직 만든 암기카드가 없습니다.</div>`;
+    }
+
     function updateCycleCard() {
       const today = new Date();
       const cycle = cycleDayForDate(today);
@@ -1426,6 +1776,7 @@
       updateSettingsInputs();
       renderCalendar();
       renderSelectedDay();
+      renderReviewSystem();
       updateCycleCard();
     }
 
@@ -1528,6 +1879,20 @@
       });
     });
 
+    els.addMemoryCardBtn.addEventListener("click", createMemoryCard);
+
+    [els.dueCardsList, els.recentCardsList].forEach((list) => {
+      list.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+        const cardEl = event.target.closest(".memory-card");
+        if (!cardEl) return;
+        const action = button.dataset.action;
+        if (action === "delete" && !confirm("이 암기카드를 삭제할까요?")) return;
+        reviewMemoryCard(cardEl.dataset.cardId, action);
+      });
+    });
+
     els.exportBtn.addEventListener("click", () => {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -1554,12 +1919,9 @@
           if (!imported || typeof imported !== "object") throw new Error("invalid");
           state = {
             daily: imported.daily || {},
+            cards: Array.isArray(imported.cards) ? imported.cards : [],
             activeSession: imported.activeSession || null,
-            settings: {
-              ...state.settings,
-              ...(imported.settings || {})
-            }
-          };
+            settings:
           saveState();
           renderAll();
           alert("복구가 완료되었습니다.");
