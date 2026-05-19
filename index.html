@@ -458,6 +458,92 @@
       gap: 10px;
     }
 
+    .plan-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .plan-detail-grid {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .plan-detail {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f8fafc;
+      padding: 10px 11px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .plan-detail strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 12px;
+      color: #374151;
+    }
+
+    .progress-alert {
+      display: none;
+      border-radius: 14px;
+      padding: 11px 12px;
+      line-height: 1.5;
+      font-size: 13px;
+      font-weight: 800;
+      border: 1px solid var(--line);
+    }
+
+    .progress-alert.good {
+      display: block;
+      background: #ecfdf5;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+
+    .progress-alert.watch {
+      display: block;
+      background: #fffbeb;
+      border-color: #fde68a;
+      color: #92400e;
+    }
+
+    .progress-alert.bad {
+      display: block;
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+
+    .day-progress-chip {
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      width: fit-content;
+    }
+
+    .day-progress-chip.good { background: #dcfce7; color: #166534; }
+    .day-progress-chip.watch { background: #fef3c7; color: #92400e; }
+    .day-progress-chip.bad { background: #fee2e2; color: #991b1b; }
+
+    .plan-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+    }
+
+    .mini-plan-chip {
+      border-radius: 999px;
+      padding: 2px 6px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
     .selected-date-title {
       font-size: 18px;
       font-weight: 900;
@@ -687,6 +773,34 @@
               오늘 공부할 과목/세부 계획
               <textarea id="taskTextarea" placeholder="예: 세무회계&#10;재무회계&#10;원가관리"></textarea>
             </label>
+
+            <div>
+              <div class="label-inline" style="margin-bottom: 7px;">
+                <span class="subtle" style="font-weight:900;">과목별 실제 진행 Day 선택</span>
+                <span class="pill">Day 1~24</span>
+              </div>
+              <div class="plan-picker-grid">
+                <label>
+                  세무회계
+                  <select id="taxDaySelect"></select>
+                </label>
+                <label>
+                  재무회계
+                  <select id="financialDaySelect"></select>
+                </label>
+                <label>
+                  원가관리
+                  <select id="costDaySelect"></select>
+                </label>
+              </div>
+              <div class="progress-alert" id="progressAssessmentBox"></div>
+              <div class="plan-detail-grid">
+                <div class="plan-detail" id="taxPlanDetail"></div>
+                <div class="plan-detail" id="financialPlanDetail"></div>
+                <div class="plan-detail" id="costPlanDetail"></div>
+              </div>
+            </div>
+
             <label>
               메모
               <textarea id="noteTextarea" placeholder="오늘 막힌 부분, 내일 이어갈 문제, 컨디션 등을 적어두세요."></textarea>
@@ -721,6 +835,39 @@
   <script>
     const STORAGE_KEY = "taxStudyPlanner.v1";
     const DEFAULT_TASKS = ["세무회계", "재무회계", "원가관리"];
+
+    const SUBJECT_LABELS = {
+      tax: "세무회계",
+      financial: "재무회계",
+      cost: "원가관리"
+    };
+
+    const PLAN_DETAILS = {
+      "1": { financial: "2-1, 3-1, 5-1, 7-1, 8-1, 10-1, 12-1, 13-1, 15-1", cost: "3-1, 8-2, 9-1, 13-1", tax: "[법인] Ch.1-1, Ch.5-1, Ch.9-1, Ch.13-1, Ch.17-1 / [소득] Ch.1-1, Ch.4-1, Ch.7-2 / [부가] Ch.1-1, Ch.3-1" },
+      "2": { financial: "3-2, 4-1, 6-1, 9-1, 10-2, 10-3, 11-1, 14-1, 16-1", cost: "2-2, 4-1, 5-2, 16-4", tax: "[법인] Ch.2-1, Ch.6-5, Ch.10-1, Ch.14-1, Ch.18-3 / [소득] Ch.2-1, Ch.5-1, Ch.8-1 / [부가] Ch.2-1, Ch.4-2" },
+      "3": { financial: "3-3, 7-2, 7-3, 8-2, 10-4, 12-2, 12-3, 13-2, 15-2", cost: "6-3, 9-3, 14-1, 15-1", tax: "[법인] Ch.3-1, Ch.7-2, Ch.11-1, Ch.15-1, Ch.19-3 / [소득] Ch.3-1, Ch.6-1, Ch.9-2 / [부가] Ch.3-3, Ch.5-1" },
+      "4": { financial: "2-2, 3-4, 5-2, 7-4, 10-5, 10-6, 12-4, 13-3, 15-3", cost: "8-3, 9-4, 11-1, 13-2", tax: "[법인] Ch.4-2, Ch.8-2, Ch.12-1, Ch.16-1, Ch.20-4 / [소득] Ch.4-2, Ch.7-3, Ch.10-3 / [부가] Ch.1-2, Ch.4-5" },
+      "5": { financial: "4-2, 8-3, 9-2, 10-7, 11-2, 14-2, 15-4, 16-2", cost: "3-2, 5-5, 16-6", tax: "[법인] Ch.5-3, Ch.9-2, Ch.13-6, Ch.17-3, Ch.21-1 / [소득] Ch.1-2, Ch.5-3, Ch.8-3 / [부가] Ch.2-2, Ch.5-2" },
+      "6": { financial: "2-3, 3-5, 5-3, 6-2, 7-5, 10-8, 12-5, 13-4, 15-5", cost: "1-2, 2-3, 4-3, 8-4", tax: "[법인] Ch.6-6, Ch.10-2, Ch.14-2, Ch.18-4, Ch.21-2 / [소득] Ch.2-2, Ch.6-2, Ch.9-3 / [부가] Ch.1-3, Ch.3-5" },
+      "7": { financial: "3-6, 7-6, 8-4, 9-3, 10-9, 10-10, 11-3, 12-6, 15-6", cost: "10-2, 12-3, 14-2, 15-3", tax: "[법인] Ch.2-2, Ch.7-3, Ch.11-2, Ch.15-2, Ch.19-4 / [소득] Ch.3-2, Ch.7-4, Ch.1-3 / [부가] Ch.2-3, Ch.4-6" },
+      "8": { financial: "2-4, 3-7, 5-4, 7-7, 10-11, 12-7, 13-5, 14-3, 16-3", cost: "8-4, 9-5, 9-6, 13-3", tax: "[법인] Ch.2-4, Ch.8-5, Ch.12-2, Ch.16-3, Ch.20-5 / [소득] Ch.1-4, Ch.4-4, Ch.8-5 / [부가] Ch.3-6, Ch.5-4" },
+      "9": { financial: "3-8, 4-3, 6-3, 7-8, 8-4, 10-12, 10-13, 13-6, 15-7", cost: "3-3, 5-6, 6-4, 16-7", tax: "[법인] Ch.3-2, Ch.9-3, Ch.13-7, Ch.17-5, Ch.21-4 / [소득] Ch.2-5, Ch.5-5, Ch.9-4 / [부가] Ch.1-5, Ch.5-6" },
+      "10": { financial: "2-5, 5-5, 8-5, 9-4, 10-14, 11-4, 12-8, 15-8", cost: "2-5, 4-4, 13-4", tax: "[법인] Ch.4-3, Ch.10-3, Ch.14-3, Ch.19-5, Ch.3-4 / [소득] Ch.3-3, Ch.6-4, Ch.1-5 / [부가] Ch.2-4, Ch.5-8" },
+      "11": { financial: "3-9, 7-9, 10-15, 10-16, 12-9, 13-7, 14-4, 15-9, 16-4", cost: "8-5, 9-8, 14-3, 15-4", tax: "[법인] Ch.3-5, Ch.5-4, Ch.11-3, Ch.16-4, Ch.19-8 / [소득] Ch.1-6, Ch.4-7, Ch.7-5 / [부가] Ch.1-6, Ch.3-7" },
+      "12": { financial: "2-6, 3-10, 4-4, 5-6, 6-4, 7-10, 8-6, 10-17, 12-10", cost: "3-7, 5-7, 7-3, 9-9", tax: "[법인] Ch.3-7, Ch.6-7, Ch.12-3, Ch.16-5, Ch.21-5 / [소득] Ch.2-6, Ch.5-6, Ch.8-7 / [부가] Ch.2-5, Ch.5-10" },
+      "13": { financial: "3-11, 7-11, 9-5, 10-18, 11-5, 12-11, 13-8, 14-5, 15-10", cost: "8-7, 11-3, 13-5, 16-8", tax: "[법인] Ch.3-8, Ch.7-5, Ch.14-4, Ch.17-7, Ch.21-6 / [소득] Ch.3-4, Ch.6-5, Ch.9-5 / [부가] Ch.3-9, Ch.5-11" },
+      "14": { financial: "2-7, 3-12, 5-7, 7-12, 8-7, 10-19, 15-11, 16-5", cost: "2-7, 4-5, 9-11, 14-5", tax: "[법인] Ch.4-4, Ch.8-6, Ch.14-6, Ch.19-10, Ch.4-5 / [소득] Ch.4-9, Ch.7-6, Ch.1-7 / [부가] Ch.1-8, Ch.1-10" },
+      "15": { financial: "3-13, 4-5, 6-5, 8-8, 10-20, 10-21, 12-12, 13-9, 15-12", cost: "6-5, 13-6, 15-5, 9-18", tax: "[법인] Ch.4-6, Ch.5-9, Ch.9-4, Ch.16-6, Ch.19-11 / [소득] Ch.1-8, Ch.7-7, Ch.9-6 / [부가] Ch.2-6, Ch.1-11" },
+      "16": { financial: "2-8, 5-8, 7-13, 9-6, 10-22, 11-6, 12-13, 13-10, 14-6", cost: "3-8, 5-9, 8-9, 16-9", tax: "[법인] Ch.4-7, Ch.6-9, Ch.10-5, Ch.16-7, Ch.21-7 / [소득] Ch.2-7, Ch.7-9, Ch.9-8 / [부가] Ch.1-13, Ch.3-10" },
+      "17": { financial: "3-14, 7-14, 8-9, 10-23, 10-24, 12-14, 13-11, 15-13, 16-6", cost: "1-2, 9-12, 9-10, 13-8", tax: "[법인] Ch.4-8, Ch.7-6, Ch.11-6, Ch.17-8, Ch.21-8 / [소득] Ch.3-5, Ch.7-11, Ch.1-9 / [부가] Ch.2-9, Ch.1-14" },
+      "18": { financial: "2-9, 3-15, 4-6, 5-9, 6-6, 7-15, 10-25, 12-15, 15-14", cost: "2-9, 4-6, 8-11, 10-5", tax: "[법인] Ch.4-10, Ch.8-7, Ch.12-4, Ch.19-12, Ch.4-11 / [소득] Ch.1-10, Ch.4-10, Ch.9-9 / [부가] Ch.3-11, Ch.1-15" },
+      "19": { financial: "3-16, 8-10, 9-7, 10-26, 11-7, 14-7, 15-15, 16-7", cost: "3-9, 12-5, 14-7, 15-7", tax: "[법인] Ch.5-10, Ch.5-11, Ch.9-9, Ch.14-7, Ch.19-13 / [소득] Ch.2-8, Ch.7-14, Ch.9-11 / [부가] Ch.1-16, Ch.1-17" },
+      "20": { financial: "2-10, 3-17, 5-10, 7-16, 10-27, 10-28, 12-16, 13-12, 15-16", cost: "5-10, 9-13, 16-10", tax: "[법인] Ch.5-12, Ch.6-12, Ch.10-6, Ch.14-8, Ch.21-9 / [소득] Ch.3-6, Ch.7-15, Ch.1-12 / [부가] Ch.2-10, Ch.1-18" },
+      "21": { financial: "3-18, 7-17, 7-18, 8-11, 10-29, 12-17, 12-18, 13-13, 15-17", cost: "6-6, 8-13, 11-4, 13-11", tax: "[법인] Ch.6-13, Ch.7-7, Ch.12-7, Ch.19-15 / [소득] Ch.2-9, Ch.4-11, Ch.9-14, Ch.5-4 / [부가] Ch.1-19, Ch.3-13" },
+      "22": { financial: "2-11, 4-7, 6-7, 8-12 ,9-8, 10-30, 10-31, 11-8, 14-8, 16-8", cost: "2-10, 4-8, 9-14, 14-8", tax: "[법인] Ch.6-14, Ch.9-10, Ch.19-16, Ch.19-18, Ch.9-11 / [소득] Ch.2-10, Ch.9-15, Ch.9-16 / [부가] Ch.2-13, Ch.1-20" },
+      "23": { financial: "3-19, 5-11, 7-19, 8-13, 10-32, 12-19, 13-14, 15-18", cost: "3-10, 5-14, 15-10, 16-11", tax: "[법인] Ch.9-12, Ch.9-13, Ch.9-14, Ch.19-19, Ch.19-21 / [소득] Ch.3-7, Ch.9-18, Ch.9-19 / [부가] Ch.3-14, Ch.3-15" },
+      "24": { financial: "Day 24는 재무회계 23일 완성 후 예비/오답정리/부족 챕터 보충", cost: "8-14, 8-16, 9-16, 13-12", tax: "[법인] (완료) / [소득] Ch.9-20, Ch.9-22, Ch.2-11 / [부가] Ch.3-16, Ch.3-17" }
+    };
 
     const pad = (n) => String(n).padStart(2, "0");
 
@@ -850,6 +997,13 @@
       selectedDateStudy: document.getElementById("selectedDateStudy"),
       taskTextarea: document.getElementById("taskTextarea"),
       noteTextarea: document.getElementById("noteTextarea"),
+      taxDaySelect: document.getElementById("taxDaySelect"),
+      financialDaySelect: document.getElementById("financialDaySelect"),
+      costDaySelect: document.getElementById("costDaySelect"),
+      taxPlanDetail: document.getElementById("taxPlanDetail"),
+      financialPlanDetail: document.getElementById("financialPlanDetail"),
+      costPlanDetail: document.getElementById("costPlanDetail"),
+      progressAssessmentBox: document.getElementById("progressAssessmentBox"),
       saveDayBtn: document.getElementById("saveDayBtn"),
       cycleToday: document.getElementById("cycleToday"),
       cycleText: document.getElementById("cycleText"),
@@ -868,11 +1022,15 @@
         state.daily[key] = {
           seconds: 0,
           tasks: DEFAULT_TASKS.slice(),
-          note: ""
+          note: "",
+          planDays: { tax: null, financial: null, cost: null }
         };
       }
       if (!Array.isArray(state.daily[key].tasks) || state.daily[key].tasks.length === 0) {
         state.daily[key].tasks = DEFAULT_TASKS.slice();
+      }
+      if (!state.daily[key].planDays) {
+        state.daily[key].planDays = { tax: null, financial: null, cost: null };
       }
       return state.daily[key];
     }
@@ -951,6 +1109,85 @@
       const diff = daysBetween(start, date);
       const normalized = ((diff % 24) + 24) % 24;
       return normalized + 1;
+    }
+
+    function buildDayOptions(selectEl) {
+      selectEl.innerHTML = "";
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "미선택";
+      selectEl.appendChild(empty);
+      for (let i = 1; i <= 24; i++) {
+        const option = document.createElement("option");
+        option.value = String(i);
+        option.textContent = `Day ${i}`;
+        selectEl.appendChild(option);
+      }
+    }
+
+    function getSavedPlanDays(key) {
+      const day = state.daily[key];
+      return {
+        tax: Number(day?.planDays?.tax) || null,
+        financial: Number(day?.planDays?.financial) || null,
+        cost: Number(day?.planDays?.cost) || null
+      };
+    }
+
+    function getRepresentativeActualDay(key) {
+      const plans = getSavedPlanDays(key);
+      const selected = Object.values(plans).filter(Boolean);
+      if (selected.length === 0) return null;
+      return Math.min(...selected);
+    }
+
+    function progressAssessmentForDate(key) {
+      const date = parseDateKey(key);
+      const expected = cycleDayForDate(date);
+      const actual = getRepresentativeActualDay(key);
+      if (!actual) {
+        return { level: "", label: "", text: `계획 기준 Day ${expected}/24 · 실제 진행 Day를 선택하면 진도 판단이 표시됩니다.` };
+      }
+      const lag = expected - actual;
+      if (lag >= 2) {
+        return { level: "bad", label: "느림!", text: `주의: 계획상 Day ${expected} 차례인데 실제 최저 진행이 Day ${actual}입니다. 약 ${lag}일 밀렸습니다.` };
+      }
+      if (lag === 1) {
+        return { level: "watch", label: "주의", text: `조금 밀림: 계획상 Day ${expected} 차례인데 실제 최저 진행이 Day ${actual}입니다. 하루 보충이 필요합니다.` };
+      }
+      if (lag <= -1) {
+        return { level: "good", label: "빠름", text: `좋음: 계획상 Day ${expected}보다 실제 진행 Day ${actual}가 앞서 있습니다.` };
+      }
+      return { level: "good", label: "정상", text: `정상: 계획상 Day ${expected}와 실제 진행 Day ${actual}가 맞습니다.` };
+    }
+
+    function renderPlanDetail(subjectKey, dayNumber) {
+      const label = SUBJECT_LABELS[subjectKey];
+      const detail = dayNumber ? PLAN_DETAILS[String(dayNumber)]?.[subjectKey] : "Day를 선택하면 이곳에 세부 문제 범위가 표시됩니다.";
+      return `<strong>${label} ${dayNumber ? `Day ${dayNumber}` : ""}</strong>${escapeHtml(detail || "아직 세부 범위가 없습니다.")}`;
+    }
+
+    function updatePlanPreview() {
+      const taxDay = Number(els.taxDaySelect.value) || null;
+      const financialDay = Number(els.financialDaySelect.value) || null;
+      const costDay = Number(els.costDaySelect.value) || null;
+      els.taxPlanDetail.innerHTML = renderPlanDetail("tax", taxDay);
+      els.financialPlanDetail.innerHTML = renderPlanDetail("financial", financialDay);
+      els.costPlanDetail.innerHTML = renderPlanDetail("cost", costDay);
+
+      const tempPlans = [taxDay, financialDay, costDay].filter(Boolean);
+      const expected = cycleDayForDate(parseDateKey(selectedKey));
+      const actual = tempPlans.length ? Math.min(...tempPlans) : null;
+      let assessment = { level: "", text: `계획 기준 Day ${expected}/24 · 실제 진행 Day를 선택하면 진도 판단이 표시됩니다.` };
+      if (actual) {
+        const lag = expected - actual;
+        if (lag >= 2) assessment = { level: "bad", text: `느림! 계획상 Day ${expected} 차례인데 실제 최저 진행이 Day ${actual}입니다. 약 ${lag}일 밀렸습니다.` };
+        else if (lag === 1) assessment = { level: "watch", text: `주의! 계획상 Day ${expected} 차례인데 실제 최저 진행이 Day ${actual}입니다. 하루 정도 밀렸습니다.` };
+        else if (lag <= -1) assessment = { level: "good", text: `빠름/여유: 계획상 Day ${expected}보다 실제 진행 Day ${actual}가 앞서 있습니다.` };
+        else assessment = { level: "good", text: `정상: 계획상 Day ${expected}와 실제 진행 Day ${actual}가 맞습니다.` };
+      }
+      els.progressAssessmentBox.className = `progress-alert ${assessment.level}`;
+      els.progressAssessmentBox.textContent = assessment.text;
     }
 
     function phaseMessage(year, monthIndex) {
@@ -1084,7 +1321,13 @@
         const seconds = getSecondsForDay(key, true);
         const hours = seconds / 3600;
         const heat = hours >= 8 ? "heat-4" : hours >= 5 ? "heat-3" : hours >= 2 ? "heat-2" : hours > 0 ? "heat-1" : "";
-        const tasks = (dayData?.tasks && dayData.tasks.length ? dayData.tasks : DEFAULT_TASKS).slice(0, 4);
+        const tasks = (dayData?.tasks && dayData.tasks.length ? dayData.tasks : DEFAULT_TASKS).slice(0, 3);
+        const plans = getSavedPlanDays(key);
+        const selectedPlanChips = Object.entries(plans)
+          .filter(([, value]) => value)
+          .map(([subject, value]) => `<span class="mini-plan-chip">${escapeHtml(SUBJECT_LABELS[subject])} D${value}</span>`)
+          .join("");
+        const assessment = progressAssessmentForDate(key);
         const div = document.createElement("div");
         div.className = `day ${heat} ${key === today ? "today" : ""} ${key === selectedKey ? "selected" : ""}`;
         div.dataset.key = key;
@@ -1092,11 +1335,13 @@
         div.innerHTML = `
           <div class="day-num">
             <span>${dayNum}</span>
-            <span class="cycle">D${cycleDayForDate(date)}/24</span>
+            <span class="cycle">계획 D${cycleDayForDate(date)}/24</span>
           </div>
+          ${assessment.label ? `<div class="day-progress-chip ${assessment.level}">${assessment.label}</div>` : ""}
           <div class="task-list">
             ${tasks.map((task) => `<div class="task-chip">${escapeHtml(task)}</div>`).join("")}
           </div>
+          ${selectedPlanChips ? `<div class="plan-chip-row">${selectedPlanChips}</div>` : ""}
           <div class="study-time">${seconds > 0 ? secondsToShort(seconds) : "0m"}</div>
         `;
 
@@ -1144,9 +1389,19 @@
         weekday: "long"
       });
       els.selectedDateTitle.textContent = formatter.format(date);
-      els.selectedDateStudy.textContent = `순공 ${secondsToShort(getSecondsForDay(selectedKey, true))} · 회독 사이클 Day ${cycleDayForDate(date)}/24`;
-      els.taskTextarea.value = (day.tasks && day.tasks.length ? day.tasks : DEFAULT_TASKS).join("\n");
+      els.selectedDateStudy.textContent = `순공 ${secondsToShort(getSecondsForDay(selectedKey, true))} · 계획 기준 Day ${cycleDayForDate(date)}/24`;
+      els.taskTextarea.value = (day.tasks && day.tasks.length ? day.tasks : DEFAULT_TASKS).join("
+");
       els.noteTextarea.value = day.note || "";
+
+      buildDayOptions(els.taxDaySelect);
+      buildDayOptions(els.financialDaySelect);
+      buildDayOptions(els.costDaySelect);
+      const plans = getSavedPlanDays(selectedKey);
+      els.taxDaySelect.value = plans.tax ? String(plans.tax) : "";
+      els.financialDaySelect.value = plans.financial ? String(plans.financial) : "";
+      els.costDaySelect.value = plans.cost ? String(plans.cost) : "";
+      updatePlanPreview();
     }
 
     function updateCycleCard() {
@@ -1246,13 +1501,23 @@
     els.saveDayBtn.addEventListener("click", () => {
       const day = ensureDay(selectedKey);
       day.tasks = els.taskTextarea.value
-        .split("\n")
+        .split("
+")
         .map((line) => line.trim())
         .filter(Boolean);
       if (day.tasks.length === 0) day.tasks = DEFAULT_TASKS.slice();
+      day.planDays = {
+        tax: Number(els.taxDaySelect.value) || null,
+        financial: Number(els.financialDaySelect.value) || null,
+        cost: Number(els.costDaySelect.value) || null
+      };
       day.note = els.noteTextarea.value.trim();
       saveState();
       renderAll();
+    });
+
+    [els.taxDaySelect, els.financialDaySelect, els.costDaySelect].forEach((select) => {
+      select.addEventListener("change", updatePlanPreview);
     });
 
     els.exportBtn.addEventListener("click", () => {
