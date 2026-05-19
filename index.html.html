@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>세무사 시험 스터디 플래너</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --green: #16a34a;
+      --orange: #f59e0b;
+      --red: #dc2626;
+      --purple: #7c3aed;
+      --shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 45%, #fefce8 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      width: min(1480px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0 42px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+      padding: 22px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .title-wrap h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 3vw, 38px);
+      letter-spacing: -0.04em;
+    }
+
+    .title-wrap p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .clock-card {
+      min-width: 270px;
+      text-align: right;
+    }
+
+    .clock-card .date {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .clock-card .time {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr) 360px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(229, 231, 235, 0.9);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      letter-spacing: -0.03em;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .timer-display {
+      font-size: clamp(44px, 7vw, 62px);
+      font-weight: 900;
+      text-align: center;
+      margin: 10px 0 14px;
+      letter-spacing: -0.05em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .today-total {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .metric {
+      padding: 13px;
+      border-radius: 15px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .metric .value {
+      font-size: 22px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.03em;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+
+    button, input, textarea, select {
+      font-family: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 13px;
+      padding: 11px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .primary {
+      background: var(--primary);
+      color: white;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .ghost {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .green {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .purple {
+      background: #ede9fe;
+      color: #5b21b6;
+    }
+
+    .manual-add {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .manual-add input {
+      flex: 1;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 11px;
+      background: white;
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .settings-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .label-inline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dday-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .dday {
+      border-radius: 16px;
+      padding: 14px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+    }
+
+    .dday strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 8px;
+    }
+
+    .dday .big {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .status {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .status.good {
+      background: #ecfdf5;
+      border-color: #bbf7d0;
+    }
+
+    .status.watch {
+      background: #fffbeb;
+      border-color: #fde68a;
+    }
+
+    .status.bad {
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .progress-wrap {
+      height: 14px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 4px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--purple));
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
+    .calendar-card {
+      min-width: 0;
+    }
+
+    .calendar-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .month-title {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    .phase-note {
+      display: none;
+      margin: 10px 0 12px;
+      padding: 13px 14px;
+      border-radius: 15px;
+      background: #f5f3ff;
+      border: 1px solid #ddd6fe;
+      color: #4c1d95;
+      font-weight: 800;
+    }
+
+    .weekdays, .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .weekdays div {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      padding: 5px 0;
+    }
+
+    .day {
+      min-height: 132px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: white;
+      padding: 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .day:hover {
+      border-color: #93c5fd;
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.09);
+    }
+
+    .day.empty {
+      background: rgba(255, 255, 255, 0.45);
+      cursor: default;
+      border-style: dashed;
+    }
+
+    .day.today {
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .day.selected {
+      outline: 3px solid rgba(124, 58, 237, 0.22);
+      border-color: var(--purple);
+    }
+
+    .day-num {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 900;
+      font-size: 15px;
+    }
+
+    .cycle {
+      font-size: 11px;
+      color: var(--muted);
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 2px 6px;
+      font-weight: 800;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 3px;
+      font-size: 12px;
+      color: #374151;
+      line-height: 1.25;
+    }
+
+    .task-chip {
+      border-radius: 9px;
+      padding: 3px 6px;
+      background: #f8fafc;
+      border: 1px solid #eef2f7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .study-time {
+      margin-top: auto;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--primary-dark);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .heat-1 { background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%); }
+    .heat-2 { background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%); }
+    .heat-3 { background: linear-gradient(180deg, #ffffff 0%, #bfdbfe 100%); }
+    .heat-4 { background: linear-gradient(180deg, #ffffff 0%, #93c5fd 100%); }
+
+    .editor {
+      display: grid;
+      gap: 10px;
+    }
+
+    .selected-date-title {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    .tiny {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .footer-tools {
+      display: grid;
+      gap: 9px;
+    }
+
+    .footer-tools .btn-row button {
+      flex: 1;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: #f3f4f6;
+      color: #374151;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .hidden-file {
+      display: none;
+    }
+
+    @media (max-width: 1180px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .clock-card {
+        min-width: 220px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        width: min(100% - 16px, 1480px);
+        padding-top: 10px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .clock-card {
+        text-align: left;
+      }
+
+      .summary-row, .dday-box, .today-total {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .weekdays, .calendar-grid {
+        gap: 4px;
+      }
+
+      .day {
+        min-height: 110px;
+        padding: 7px;
+      }
+
+      .task-chip {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title-wrap">
+        <h1>세무사 시험 스터디 플래너</h1>
+        <p>순공 스탑워치 · 24일 회독 사이클 · 월간 누적 · D-day · 합격권 추세판</p>
+      </div>
+      <div class="clock-card">
+        <div class="date" id="currentDateText">-</div>
+        <div class="time" id="currentTimeText">--:--:--</div>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="stack">
+        <article class="card">
+          <h2>순공 스탑워치</h2>
+          <p class="subtle">시작하면 순공 시간이 재지고, 멈추면 오늘 날짜의 누적 공부시간에 자동으로 쌓입니다.</p>
+          <div class="timer-display" id="sessionTimer">00:00:00</div>
+          <div class="btn-row">
+            <button class="primary" id="toggleTimerBtn">공부 시작</button>
+            <button class="ghost" id="savePauseBtn">기록 새로고침</button>
+          </div>
+          <div class="today-total">
+            <div class="metric">
+              <div class="label">오늘 순공</div>
+              <div class="value" id="todayStudyTime">0h 00m</div>
+            </div>
+            <div class="metric">
+              <div class="label">전체 누적</div>
+              <div class="value" id="totalStudyTime">0h</div>
+            </div>
+          </div>
+          <div class="manual-add">
+            <input id="manualMinutes" type="number" min="1" placeholder="깜빡한 순공 분 입력" />
+            <button class="green" id="manualAddBtn">오늘 추가</button>
+          </div>
+          <div class="btn-row" style="margin-top:10px;">
+            <button class="danger" id="deleteTodayBtn">오늘 기록 삭제</button>
+            <button class="ghost" id="goTodayBtn">오늘 달력 보기</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>D-day & 합격권 추세</h2>
+          <div class="dday-box">
+            <div class="dday">
+              <strong>1차 시험</strong>
+              <div class="big" id="firstDday">D-000</div>
+              <div class="subtle" id="firstRemainText">-</div>
+            </div>
+            <div class="dday">
+              <strong>2차 시험</strong>
+              <div class="big" id="secondDday">D-000</div>
+              <div class="subtle" id="secondRemainText">-</div>
+            </div>
+          </div>
+
+          <div class="progress-wrap" title="합격권 목표 공부시간 대비 누적률">
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <div class="tiny" id="progressText">목표 대비 0%</div>
+
+          <div class="status" id="trendStatus">기록을 시작하면 추세가 표시됩니다.</div>
+        </article>
+
+        <article class="card">
+          <h2>기본 설정</h2>
+          <div class="settings-grid">
+            <label>
+              공부 시작 기준일
+              <input type="date" id="startDateInput" />
+            </label>
+            <label>
+              1차 시험일 임시값
+              <input type="date" id="firstExamInput" />
+            </label>
+            <label>
+              2차 시험일 임시값
+              <input type="date" id="secondExamInput" />
+            </label>
+            <label>
+              1차 전 합격권 목표 누적 순공시간
+              <input type="number" id="targetHoursInput" min="100" step="50" />
+            </label>
+            <label>
+              하루 기준 목표 순공시간
+              <input type="number" id="dailyGoalInput" min="1" max="15" step="0.5" />
+            </label>
+            <button class="primary" id="saveSettingsBtn">설정 저장</button>
+          </div>
+          <p class="tiny" style="margin-bottom:0;">2027년 공식 시험일이 나오면 날짜만 바꾸면 D-day와 추세가 자동으로 다시 계산됩니다.</p>
+        </article>
+      </section>
+
+      <section class="card calendar-card">
+        <div class="calendar-head">
+          <button class="ghost" id="prevMonthBtn">이전</button>
+          <div class="month-title" id="monthTitle">2026년 5월</div>
+          <button class="ghost" id="nextMonthBtn">다음</button>
+        </div>
+        <div class="btn-row" style="justify-content:center; margin-bottom: 8px;">
+          <button class="purple" id="currentMonthBtn">이번 달</button>
+        </div>
+
+        <div class="summary-row">
+          <div class="metric">
+            <div class="label">월 누적</div>
+            <div class="value" id="monthTotal">0h</div>
+          </div>
+          <div class="metric">
+            <div class="label">공부한 날</div>
+            <div class="value" id="monthDays">0일</div>
+          </div>
+          <div class="metric">
+            <div class="label">하루 평균</div>
+            <div class="value" id="monthAverage">0h</div>
+          </div>
+          <div class="metric">
+            <div class="label">최고 기록</div>
+            <div class="value" id="monthBest">0h</div>
+          </div>
+        </div>
+
+        <div class="phase-note" id="phaseNote"></div>
+
+        <div class="weekdays">
+          <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </section>
+
+      <section class="stack">
+        <article class="card">
+          <h2>선택 날짜 세부 계획</h2>
+          <div class="selected-date-title" id="selectedDateTitle">오늘</div>
+          <div class="subtle" id="selectedDateStudy">순공 0h 00m</div>
+          <div class="editor" style="margin-top: 12px;">
+            <label>
+              오늘 공부할 과목/세부 계획
+              <textarea id="taskTextarea" placeholder="예: 세무회계&#10;재무회계&#10;원가관리"></textarea>
+            </label>
+            <label>
+              메모
+              <textarea id="noteTextarea" placeholder="오늘 막힌 부분, 내일 이어갈 문제, 컨디션 등을 적어두세요."></textarea>
+            </label>
+            <button class="primary" id="saveDayBtn">선택 날짜 저장</button>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>회독 사이클</h2>
+          <div class="status">
+            <strong id="cycleToday">오늘은 24일 회독 사이클 Day -</strong><br />
+            <span id="cycleText">세부 문제 배분을 아직 넣기 전이므로 기본 과목은 세무회계·재무회계·원가관리로 표시합니다.</span>
+          </div>
+          <p class="tiny">나중에 “몇 월 며칠에 어떤 연습서 몇 번~몇 번”을 주시면 이 칸과 달력 날짜별 계획에 그대로 반영하면 됩니다.</p>
+        </article>
+
+        <article class="card footer-tools">
+          <h2>백업 / 복구</h2>
+          <div class="btn-row">
+            <button class="ghost" id="exportBtn">JSON 백업</button>
+            <button class="ghost" id="importBtn">JSON 복구</button>
+          </div>
+          <input type="file" id="importFile" class="hidden-file" accept="application/json" />
+          <button class="danger" id="resetAllBtn">전체 데이터 초기화</button>
+          <p class="tiny">GitHub Pages에 올려도 기록은 각 브라우저의 localStorage에 저장됩니다. 다른 컴퓨터로 옮길 때는 JSON 백업/복구를 사용하세요.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "taxStudyPlanner.v1";
+    const DEFAULT_TASKS = ["세무회계", "재무회계", "원가관리"];
+
+    const pad = (n) => String(n).padStart(2, "0");
+
+    function dateKey(date) {
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function parseDateKey(key) {
+      const [y, m, d] = key.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function todayKey() {
+      return dateKey(new Date());
+    }
+
+    function secondsToHMS(seconds) {
+      const safe = Math.max(0, Math.floor(seconds));
+      const h = Math.floor(safe / 3600);
+      const m = Math.floor((safe % 3600) / 60);
+      const s = safe % 60;
+      return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    function secondsToShort(seconds) {
+      const safe = Math.max(0, Math.floor(seconds));
+      const h = Math.floor(safe / 3600);
+      const m = Math.floor((safe % 3600) / 60);
+      if (h <= 0) return `${m}m`;
+      return `${h}h ${pad(m)}m`;
+    }
+
+    function hoursNumber(seconds) {
+      return Math.round((seconds / 3600) * 10) / 10;
+    }
+
+    function daysBetween(a, b) {
+      const start = new Date(a.getFullYear(), a.getMonth(), a.getDate()).getTime();
+      const end = new Date(b.getFullYear(), b.getMonth(), b.getDate()).getTime();
+      return Math.round((end - start) / 86400000);
+    }
+
+    function monthsDaysUntil(targetDate) {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const target = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      let months = (target.getFullYear() - today.getFullYear()) * 12 + (target.getMonth() - today.getMonth());
+      let anchor = new Date(today.getFullYear(), today.getMonth() + months, today.getDate());
+      if (anchor > target) {
+        months -= 1;
+        anchor = new Date(today.getFullYear(), today.getMonth() + months, today.getDate());
+      }
+      const days = Math.max(0, daysBetween(anchor, target));
+      return { months: Math.max(0, months), days };
+    }
+
+    function loadState() {
+      const fallback = {
+        daily: {},
+        activeSession: null,
+        settings: {
+          startDate: "2026-05-19",
+          firstExamDate: "2027-04-30",
+          secondExamDate: "2027-08-07",
+          targetHours: 2200,
+          dailyGoalHours: 6
+        }
+      };
+
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return {
+          ...fallback,
+          ...parsed,
+          settings: { ...fallback.settings, ...(parsed.settings || {}) },
+          daily: parsed.daily || {},
+          activeSession: parsed.activeSession || null
+        };
+      } catch (error) {
+        console.warn("저장 데이터를 불러오지 못했습니다.", error);
+        return fallback;
+      }
+    }
+
+    let state = loadState();
+    let viewDate = new Date();
+    let selectedKey = todayKey();
+
+    const els = {
+      currentDateText: document.getElementById("currentDateText"),
+      currentTimeText: document.getElementById("currentTimeText"),
+      sessionTimer: document.getElementById("sessionTimer"),
+      toggleTimerBtn: document.getElementById("toggleTimerBtn"),
+      savePauseBtn: document.getElementById("savePauseBtn"),
+      todayStudyTime: document.getElementById("todayStudyTime"),
+      totalStudyTime: document.getElementById("totalStudyTime"),
+      manualMinutes: document.getElementById("manualMinutes"),
+      manualAddBtn: document.getElementById("manualAddBtn"),
+      deleteTodayBtn: document.getElementById("deleteTodayBtn"),
+      goTodayBtn: document.getElementById("goTodayBtn"),
+      firstDday: document.getElementById("firstDday"),
+      secondDday: document.getElementById("secondDday"),
+      firstRemainText: document.getElementById("firstRemainText"),
+      secondRemainText: document.getElementById("secondRemainText"),
+      progressBar: document.getElementById("progressBar"),
+      progressText: document.getElementById("progressText"),
+      trendStatus: document.getElementById("trendStatus"),
+      startDateInput: document.getElementById("startDateInput"),
+      firstExamInput: document.getElementById("firstExamInput"),
+      secondExamInput: document.getElementById("secondExamInput"),
+      targetHoursInput: document.getElementById("targetHoursInput"),
+      dailyGoalInput: document.getElementById("dailyGoalInput"),
+      saveSettingsBtn: document.getElementById("saveSettingsBtn"),
+      prevMonthBtn: document.getElementById("prevMonthBtn"),
+      nextMonthBtn: document.getElementById("nextMonthBtn"),
+      currentMonthBtn: document.getElementById("currentMonthBtn"),
+      monthTitle: document.getElementById("monthTitle"),
+      calendarGrid: document.getElementById("calendarGrid"),
+      monthTotal: document.getElementById("monthTotal"),
+      monthDays: document.getElementById("monthDays"),
+      monthAverage: document.getElementById("monthAverage"),
+      monthBest: document.getElementById("monthBest"),
+      phaseNote: document.getElementById("phaseNote"),
+      selectedDateTitle: document.getElementById("selectedDateTitle"),
+      selectedDateStudy: document.getElementById("selectedDateStudy"),
+      taskTextarea: document.getElementById("taskTextarea"),
+      noteTextarea: document.getElementById("noteTextarea"),
+      saveDayBtn: document.getElementById("saveDayBtn"),
+      cycleToday: document.getElementById("cycleToday"),
+      cycleText: document.getElementById("cycleText"),
+      exportBtn: document.getElementById("exportBtn"),
+      importBtn: document.getElementById("importBtn"),
+      importFile: document.getElementById("importFile"),
+      resetAllBtn: document.getElementById("resetAllBtn")
+    };
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function ensureDay(key) {
+      if (!state.daily[key]) {
+        state.daily[key] = {
+          seconds: 0,
+          tasks: DEFAULT_TASKS.slice(),
+          note: ""
+        };
+      }
+      if (!Array.isArray(state.daily[key].tasks) || state.daily[key].tasks.length === 0) {
+        state.daily[key].tasks = DEFAULT_TASKS.slice();
+      }
+      return state.daily[key];
+    }
+
+    function getActiveDistribution() {
+      const result = {};
+      if (!state.activeSession || !state.activeSession.startedAt) return result;
+      const startMs = Number(state.activeSession.startedAt);
+      const endMs = Date.now();
+      if (!Number.isFinite(startMs) || endMs <= startMs) return result;
+
+      let cursor = new Date(startMs);
+      const end = new Date(endMs);
+
+      while (cursor < end) {
+        const key = dateKey(cursor);
+        const nextMidnight = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
+        const segmentEnd = Math.min(end.getTime(), nextMidnight.getTime());
+        const segmentSeconds = Math.floor((segmentEnd - cursor.getTime()) / 1000);
+        result[key] = (result[key] || 0) + segmentSeconds;
+        cursor = new Date(segmentEnd);
+      }
+      return result;
+    }
+
+    function getSecondsForDay(key, includeActive = true) {
+      const base = state.daily[key]?.seconds || 0;
+      if (!includeActive) return base;
+      const active = getActiveDistribution();
+      return base + (active[key] || 0);
+    }
+
+    function getAllDailySeconds(includeActive = true) {
+      const map = {};
+      Object.entries(state.daily).forEach(([key, day]) => {
+        map[key] = day.seconds || 0;
+      });
+      if (includeActive) {
+        const active = getActiveDistribution();
+        Object.entries(active).forEach(([key, sec]) => {
+          map[key] = (map[key] || 0) + sec;
+        });
+      }
+      return map;
+    }
+
+    function addSecondsToDay(key, seconds) {
+      const day = ensureDay(key);
+      day.seconds = Math.max(0, (day.seconds || 0) + Math.floor(seconds));
+      saveState();
+    }
+
+    function commitActiveSession() {
+      if (!state.activeSession || !state.activeSession.startedAt) return 0;
+      const startMs = Number(state.activeSession.startedAt);
+      const endMs = Date.now();
+      const distribution = getActiveDistribution();
+      let total = 0;
+
+      Object.entries(distribution).forEach(([key, seconds]) => {
+        addSecondsToDay(key, seconds);
+        total += seconds;
+      });
+
+      state.activeSession = null;
+      saveState();
+      return total;
+    }
+
+    function totalSeconds(includeActive = true) {
+      return Object.values(getAllDailySeconds(includeActive)).reduce((sum, seconds) => sum + seconds, 0);
+    }
+
+    function cycleDayForDate(date) {
+      const start = parseDateKey(state.settings.startDate);
+      const diff = daysBetween(start, date);
+      const normalized = ((diff % 24) + 24) % 24;
+      return normalized + 1;
+    }
+
+    function phaseMessage(year, monthIndex) {
+      const month = monthIndex + 1;
+      if (year === 2026 && (month === 8 || month === 9)) {
+        return "8~9월 체크포인트: 세법학 1기 진입. 강의만 듣고 끝내지 말고 목차암기·쟁점 키워드 정리를 같이 시작하세요.";
+      }
+      if (year === 2026 && month === 10) {
+        return "10월 체크포인트: 재정학과 행정소송법 진입. 1월 객관식 전환 전에 최소 1회독 흐름을 만들어두세요.";
+      }
+      return "";
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const dateFormatter = new Intl.DateTimeFormat("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long"
+      });
+      els.currentDateText.textContent = dateFormatter.format(now);
+      els.currentTimeText.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    }
+
+    function updateTimerUI() {
+      const active = getActiveDistribution();
+      const sessionSeconds = Object.values(active).reduce((sum, sec) => sum + sec, 0);
+      els.sessionTimer.textContent = secondsToHMS(sessionSeconds);
+      els.toggleTimerBtn.textContent = state.activeSession ? "공부 멈춤" : "공부 시작";
+      els.toggleTimerBtn.className = state.activeSession ? "danger" : "primary";
+
+      els.todayStudyTime.textContent = secondsToShort(getSecondsForDay(todayKey(), true));
+      els.totalStudyTime.textContent = `${hoursNumber(totalSeconds(true))}h`;
+    }
+
+    function updateSettingsInputs() {
+      els.startDateInput.value = state.settings.startDate;
+      els.firstExamInput.value = state.settings.firstExamDate;
+      els.secondExamInput.value = state.settings.secondExamDate;
+      els.targetHoursInput.value = state.settings.targetHours;
+      els.dailyGoalInput.value = state.settings.dailyGoalHours;
+    }
+
+    function updateDdaysAndTrend() {
+      const today = new Date();
+      const first = parseDateKey(state.settings.firstExamDate);
+      const second = parseDateKey(state.settings.secondExamDate);
+      const firstRemain = daysBetween(today, first);
+      const secondRemain = daysBetween(today, second);
+      const firstMD = monthsDaysUntil(first);
+      const secondMD = monthsDaysUntil(second);
+
+      els.firstDday.textContent = firstRemain >= 0 ? `D-${firstRemain}` : `D+${Math.abs(firstRemain)}`;
+      els.secondDday.textContent = secondRemain >= 0 ? `D-${secondRemain}` : `D+${Math.abs(secondRemain)}`;
+      els.firstRemainText.textContent = `${firstMD.months}개월 ${firstMD.days}일 남음`;
+      els.secondRemainText.textContent = `${secondMD.months}개월 ${secondMD.days}일 남음`;
+
+      const start = parseDateKey(state.settings.startDate);
+      const total = totalSeconds(true) / 3600;
+      const target = Number(state.settings.targetHours) || 2200;
+      const elapsedDays = Math.max(1, daysBetween(start, today) + 1);
+      const totalPlanDays = Math.max(1, daysBetween(start, first) + 1);
+      const daysLeft = Math.max(1, daysBetween(today, first));
+      const currentAvg = total / elapsedDays;
+      const projected = currentAvg * totalPlanDays;
+      const requiredPace = Math.max(0, (target - total) / daysLeft);
+      const progressPct = Math.max(0, Math.min(100, (total / target) * 100));
+
+      els.progressBar.style.width = `${progressPct}%`;
+      els.progressText.textContent = `목표 ${target.toLocaleString()}h 대비 ${Math.round(progressPct)}% · 현재 ${total.toFixed(1)}h`;
+
+      let grade = "bad";
+      let title = "위험";
+      let comment = "현재 평균으로는 합격권 목표 시간에 크게 부족합니다. 당장 하루 순공 기준을 올리거나 주간 고정 공부블록을 늘려야 합니다.";
+
+      if (projected >= target * 1.05) {
+        grade = "good";
+        title = "충분한 추세";
+        comment = "현재 평균을 유지하면 목표 누적 순공시간을 넘길 가능성이 높습니다. 다만 과목별 균형과 객관식 전환 시점은 계속 관리하세요.";
+      } else if (projected >= target) {
+        grade = "good";
+        title = "합격권 추세";
+        comment = "현재 평균을 유지하면 목표치 근처까지 갈 수 있습니다. 빠지는 날이 생기면 바로 보충하는 방식이 필요합니다.";
+      } else if (projected >= target * 0.85) {
+        grade = "watch";
+        title = "주의";
+        comment = "조금만 흔들려도 목표 누적에 못 미칠 수 있습니다. 주당 순공시간을 10~15% 정도 올리는 게 안전합니다.";
+      }
+
+      els.trendStatus.className = `status ${grade}`;
+      els.trendStatus.innerHTML = `
+        <strong>${title}</strong><br />
+        현재 일평균 <strong>${currentAvg.toFixed(1)}h</strong>, 1차까지 예상 누적 <strong>${projected.toFixed(0)}h</strong>입니다.<br />
+        남은 기간 목표 달성 필요 페이스는 하루 <strong>${requiredPace.toFixed(1)}h</strong>입니다.<br />
+        ${comment}
+      `;
+    }
+
+    function renderCalendar() {
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth();
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const firstWeekday = firstDay.getDay();
+      const daysInMonth = lastDay.getDate();
+
+      els.monthTitle.textContent = `${year}년 ${month + 1}월`;
+      els.calendarGrid.innerHTML = "";
+
+      const phase = phaseMessage(year, month);
+      if (phase) {
+        els.phaseNote.style.display = "block";
+        els.phaseNote.textContent = phase;
+      } else {
+        els.phaseNote.style.display = "none";
+        els.phaseNote.textContent = "";
+      }
+
+      for (let i = 0; i < firstWeekday; i++) {
+        const empty = document.createElement("div");
+        empty.className = "day empty";
+        els.calendarGrid.appendChild(empty);
+      }
+
+      const today = todayKey();
+      for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+        const date = new Date(year, month, dayNum);
+        const key = dateKey(date);
+        const dayData = state.daily[key];
+        const seconds = getSecondsForDay(key, true);
+        const hours = seconds / 3600;
+        const heat = hours >= 8 ? "heat-4" : hours >= 5 ? "heat-3" : hours >= 2 ? "heat-2" : hours > 0 ? "heat-1" : "";
+        const tasks = (dayData?.tasks && dayData.tasks.length ? dayData.tasks : DEFAULT_TASKS).slice(0, 4);
+        const div = document.createElement("div");
+        div.className = `day ${heat} ${key === today ? "today" : ""} ${key === selectedKey ? "selected" : ""}`;
+        div.dataset.key = key;
+
+        div.innerHTML = `
+          <div class="day-num">
+            <span>${dayNum}</span>
+            <span class="cycle">D${cycleDayForDate(date)}/24</span>
+          </div>
+          <div class="task-list">
+            ${tasks.map((task) => `<div class="task-chip">${escapeHtml(task)}</div>`).join("")}
+          </div>
+          <div class="study-time">${seconds > 0 ? secondsToShort(seconds) : "0m"}</div>
+        `;
+
+        div.addEventListener("click", () => {
+          selectedKey = key;
+          renderSelectedDay();
+          renderCalendar();
+        });
+
+        els.calendarGrid.appendChild(div);
+      }
+
+      updateMonthSummary(year, month);
+    }
+
+    function updateMonthSummary(year, month) {
+      let total = 0;
+      let days = 0;
+      let best = 0;
+      const lastDay = new Date(year, month + 1, 0).getDate();
+
+      for (let d = 1; d <= lastDay; d++) {
+        const key = dateKey(new Date(year, month, d));
+        const sec = getSecondsForDay(key, true);
+        total += sec;
+        if (sec > 0) {
+          days += 1;
+          best = Math.max(best, sec);
+        }
+      }
+
+      els.monthTotal.textContent = `${hoursNumber(total)}h`;
+      els.monthDays.textContent = `${days}일`;
+      els.monthAverage.textContent = days > 0 ? `${hoursNumber(total / days)}h` : "0h";
+      els.monthBest.textContent = `${hoursNumber(best)}h`;
+    }
+
+    function renderSelectedDay() {
+      const date = parseDateKey(selectedKey);
+      const day = ensureDay(selectedKey);
+      const formatter = new Intl.DateTimeFormat("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long"
+      });
+      els.selectedDateTitle.textContent = formatter.format(date);
+      els.selectedDateStudy.textContent = `순공 ${secondsToShort(getSecondsForDay(selectedKey, true))} · 회독 사이클 Day ${cycleDayForDate(date)}/24`;
+      els.taskTextarea.value = (day.tasks && day.tasks.length ? day.tasks : DEFAULT_TASKS).join("\n");
+      els.noteTextarea.value = day.note || "";
+    }
+
+    function updateCycleCard() {
+      const today = new Date();
+      const cycle = cycleDayForDate(today);
+      els.cycleToday.textContent = `오늘은 24일 회독 사이클 Day ${cycle}/24`;
+      els.cycleText.textContent = "현재 기본 반복 과목은 세무회계 · 재무회계 · 원가관리입니다. 8~9월에는 세법학 1기, 10월에는 재정학·행정소송법 진입 메모가 달력에 표시됩니다.";
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderAll() {
+      updateClock();
+      updateTimerUI();
+      updateDdaysAndTrend();
+      updateSettingsInputs();
+      renderCalendar();
+      renderSelectedDay();
+      updateCycleCard();
+    }
+
+    els.toggleTimerBtn.addEventListener("click", () => {
+      if (state.activeSession) {
+        commitActiveSession();
+      } else {
+        state.activeSession = { startedAt: Date.now() };
+        saveState();
+      }
+      renderAll();
+    });
+
+    els.savePauseBtn.addEventListener("click", () => {
+      saveState();
+      renderAll();
+    });
+
+    els.manualAddBtn.addEventListener("click", () => {
+      const minutes = Number(els.manualMinutes.value);
+      if (!Number.isFinite(minutes) || minutes <= 0) {
+        alert("추가할 분 단위를 입력해주세요.");
+        return;
+      }
+      addSecondsToDay(todayKey(), minutes * 60);
+      els.manualMinutes.value = "";
+      selectedKey = todayKey();
+      renderAll();
+    });
+
+    els.deleteTodayBtn.addEventListener("click", () => {
+      const key = todayKey();
+      if (!confirm("오늘 순공 기록을 삭제할까요? 진행 중인 스탑워치는 먼저 멈추는 것이 안전합니다.")) return;
+      ensureDay(key).seconds = 0;
+      saveState();
+      selectedKey = key;
+      renderAll();
+    });
+
+    els.goTodayBtn.addEventListener("click", () => {
+      viewDate = new Date();
+      selectedKey = todayKey();
+      renderAll();
+    });
+
+    els.saveSettingsBtn.addEventListener("click", () => {
+      state.settings.startDate = els.startDateInput.value || state.settings.startDate;
+      state.settings.firstExamDate = els.firstExamInput.value || state.settings.firstExamDate;
+      state.settings.secondExamDate = els.secondExamInput.value || state.settings.secondExamDate;
+      state.settings.targetHours = Number(els.targetHoursInput.value) || state.settings.targetHours;
+      state.settings.dailyGoalHours = Number(els.dailyGoalInput.value) || state.settings.dailyGoalHours;
+      saveState();
+      renderAll();
+    });
+
+    els.prevMonthBtn.addEventListener("click", () => {
+      viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+      renderCalendar();
+    });
+
+    els.nextMonthBtn.addEventListener("click", () => {
+      viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+      renderCalendar();
+    });
+
+    els.currentMonthBtn.addEventListener("click", () => {
+      viewDate = new Date();
+      selectedKey = todayKey();
+      renderAll();
+    });
+
+    els.saveDayBtn.addEventListener("click", () => {
+      const day = ensureDay(selectedKey);
+      day.tasks = els.taskTextarea.value
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean);
+      if (day.tasks.length === 0) day.tasks = DEFAULT_TASKS.slice();
+      day.note = els.noteTextarea.value.trim();
+      saveState();
+      renderAll();
+    });
+
+    els.exportBtn.addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `tax-study-planner-backup-${todayKey()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    els.importBtn.addEventListener("click", () => {
+      els.importFile.click();
+    });
+
+    els.importFile.addEventListener("change", (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = JSON.parse(String(reader.result));
+          if (!imported || typeof imported !== "object") throw new Error("invalid");
+          state = {
+            daily: imported.daily || {},
+            activeSession: imported.activeSession || null,
+            settings: {
+              ...state.settings,
+              ...(imported.settings || {})
+            }
+          };
+          saveState();
+          renderAll();
+          alert("복구가 완료되었습니다.");
+        } catch (error) {
+          alert("JSON 파일을 읽지 못했습니다.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    });
+
+    els.resetAllBtn.addEventListener("click", () => {
+      if (!confirm("정말 전체 기록을 초기화할까요? 이 작업은 되돌릴 수 없습니다.")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state = loadState();
+      viewDate = new Date();
+      selectedKey = todayKey();
+      renderAll();
+    });
+
+    setInterval(() => {
+      updateClock();
+      updateTimerUI();
+      updateDdaysAndTrend();
+      updateMonthSummary(viewDate.getFullYear(), viewDate.getMonth());
+      if (selectedKey === todayKey() || state.activeSession) {
+        renderSelectedDay();
+      }
+    }, 1000);
+
+    renderAll();
+  </script>
+</body>
+</html>
