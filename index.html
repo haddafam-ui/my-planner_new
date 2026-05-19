@@ -1515,7 +1515,17 @@
     });
 
     [els.taxDaySelect, els.financialDaySelect, els.costDaySelect].forEach((select) => {
-      select.addEventListener("change", updatePlanPreview);
+      select.addEventListener("change", () => {
+        updatePlanPreview();
+        const day = ensureDay(selectedKey);
+        day.planDays = {
+          tax: Number(els.taxDaySelect.value) || null,
+          financial: Number(els.financialDaySelect.value) || null,
+          cost: Number(els.costDaySelect.value) || null
+        };
+        saveState();
+        renderCalendar();
+      });
     });
 
     els.exportBtn.addEventListener("click", () => {
@@ -1575,9 +1585,9 @@
       updateTimerUI();
       updateDdaysAndTrend();
       updateMonthSummary(viewDate.getFullYear(), viewDate.getMonth());
-      if (selectedKey === todayKey() || state.activeSession) {
-        renderSelectedDay();
-      }
+
+      const selectedDate = parseDateKey(selectedKey);
+      els.selectedDateStudy.textContent = `순공 ${secondsToShort(getSecondsForDay(selectedKey, true))} · 계획 기준 Day ${cycleDayForDate(selectedDate)}/24`;
     }, 1000);
 
     renderAll();
