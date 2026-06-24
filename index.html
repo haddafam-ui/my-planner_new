@@ -21,7 +21,7 @@ header,.card{background:rgba(15,23,42,.94)!important;border-color:#334155!import
 </head>
 <body>
 <div class="app">
-<header><div class="title-wrap"><h1>세무사 시험 스터디 플래너</h1><p>순공 스탑워치 · 세무/재무 24일표 · 원가 18일표 · 오답 자동복습</p><span class="version-marker">통합본 v2026-05-23 · 오답노트 접힘/날짜선택/복사/TXT/메일 포함</span></div><div class="clock-card"><div class="date" id="currentDateText">-</div><div class="time" id="currentTimeText">--:--:--</div></div></header>
+<header><div class="title-wrap"><h1>세무사 시험 스터디 플래너</h1><p>순공 스탑워치 · 세무/재무 24일표 · 원가 18일표 · 오답 자동복습</p><span class="version-marker">통합본 v2026-06-24 · 오답노트 자동입력 버튼 추가 · 기존기록 보존</span></div><div class="clock-card"><div class="date" id="currentDateText">-</div><div class="time" id="currentTimeText">--:--:--</div></div></header>
 <main class="grid">
 <section class="stack">
 <article class="card"><h2>순공 스탑워치</h2><p class="subtle">시작하면 순공 시간이 재지고, 멈추면 오늘 날짜의 누적 공부시간에 자동으로 쌓입니다.</p><div class="timer-display" id="sessionTimer">00:00:00</div><div class="btn-row"><button class="primary" id="toggleTimerBtn">공부 시작</button><button class="ghost" id="savePauseBtn">기록 새로고침</button></div><div class="today-total"><div class="metric"><div class="label">오늘 순공</div><div class="value" id="todayStudyTime">0h 00m</div></div><div class="metric"><div class="label">전체 누적</div><div class="value" id="totalStudyTime">0h</div></div></div><div class="manual-add"><input id="manualMinutes" min="1" placeholder="깜빡한 순공 분 입력" type="number"/><button class="green" id="manualAddBtn">오늘 추가</button></div><div class="btn-row" style="margin-top:10px"><button class="danger" id="deleteTodayBtn">오늘 기록 삭제</button><button class="ghost" id="goTodayBtn">오늘 달력 보기</button></div></article><article class="card"><h2>회독 사이클</h2><div class="status"><strong id="cycleToday">오늘은 24일 회독 사이클 Day -</strong><br/><span id="cycleText">세무회계는 정우승 2026 연습서 유예 제외 24일표가 들어가 있습니다.</span></div><p class="tiny">세무회계 24일표, 재무회계 24일표, 원가관리 18일 기본문제표 기준입니다. 미완료 보충함은 백업 JSON의 backlog 값을 그대로 보존합니다.</p></article>
@@ -504,6 +504,136 @@ renderAll();
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installChecklistRescue);
   else installChecklistRescue();
+})();
+</script>
+
+
+<style id="note-autofill-style-v1">
+.problem-note-btn{margin-left:auto;padding:7px 9px!important;font-size:12px!important;border-radius:10px!important;background:#ede9fe!important;color:#5b21b6!important;white-space:nowrap;align-self:center;min-width:72px;box-shadow:none!important}.problem-note-btn:hover{background:#ddd6fe!important}.problem-check-row{align-items:center}.problem-check-row .problem-note-btn{flex:0 0 auto}.problem-note-toast{position:fixed;right:18px;bottom:18px;z-index:9999;background:#111827;color:#fff;border-radius:14px;padding:12px 14px;font-size:13px;font-weight:800;box-shadow:0 12px 32px rgba(0,0,0,.22);opacity:0;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease}.problem-note-toast.show{opacity:1;transform:translateY(0)}
+</style>
+<script id="note-autofill-v1">
+/* NOTE_AUTOFILL_2026_06_24_V1
+   목적: 문제 체크박스 행의 '오답노트' 버튼으로 암기카드 입력폼 자동 채우기.
+   원칙: localStorage의 daily/completed/cards/backlog/settings를 절대 변경하지 않음. */
+(function(){
+  const VERSION='NOTE_AUTOFILL_2026_06_24_V1';
+  const LABELS={tax:'세무회계',financial:'재무회계',cost:'원가관리'};
+  const $n=(id)=>document.getElementById(id);
+  const pad2=(n)=>String(n).padStart(2,'0');
+  const todayKey=()=>{const d=new Date();return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;};
+  const validKey=(v)=>/^\d{4}-\d{2}-\d{2}$/.test(String(v||''));
+  const esc=(v)=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+  function selectedDateKey(){
+    try{ if(typeof selectedKey!=='undefined' && validKey(selectedKey)) return selectedKey; }catch(e){}
+    const active=document.querySelector('.day.selected[data-date]');
+    if(active && validKey(active.dataset.date)) return active.dataset.date;
+    const review=$n('reviewDateInput');
+    if(review && validKey(review.value)) return review.value;
+    return todayKey();
+  }
+  function parseProblemId(id){
+    const raw=String(id||'');
+    const parts=raw.split('|');
+    const subject=parts[0]||'';
+    const dayRaw=parts[1]||'';
+    const dayNumber=dayRaw.replace(/^D/i,'')||'';
+    const type=parts[2]||'';
+    const item=parts.slice(3).join('|')||'';
+    return {raw,subject,dayNumber,type,item};
+  }
+  function toast(msg){
+    let t=document.querySelector('.problem-note-toast');
+    if(!t){t=document.createElement('div');t.className='problem-note-toast';document.body.appendChild(t);}
+    t.textContent=msg;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),1800);
+  }
+  function selectValue(selectEl,value){
+    if(!selectEl)return;
+    const wanted=String(value||'');
+    const exists=Array.from(selectEl.options||[]).some(op=>op.value===wanted || op.textContent===wanted);
+    if(exists) selectEl.value=wanted;
+  }
+  function openReviewPanelIfClosed(){
+    const panel=$n('reviewPanel');
+    const btn=$n('toggleReviewPanelBtn');
+    if(panel && (panel.style.display==='none' || !panel.style.display)){
+      panel.style.display='block';
+      if(btn) btn.textContent='오답노트 닫기';
+    }
+  }
+  function prefillCardFromProblem(info){
+    const key=selectedDateKey();
+    const subjectLabel=LABELS[info.subject]||info.subject||'기타';
+    const sourceParts=[key, subjectLabel];
+    if(info.dayNumber) sourceParts.push(`Day ${info.dayNumber}`);
+    if(info.subject==='tax' && info.type) sourceParts.push(info.type);
+    const sourceText=sourceParts.join(' · ');
+    const problemText=info.item || info.raw;
+    selectValue($n('cardSubjectSelect'),subjectLabel);
+    const source=$n('cardSourceInput');
+    const problem=$n('cardProblemInput');
+    const mistake=$n('cardMistakeInput');
+    const rule=$n('cardRuleInput');
+    const trigger=$n('cardTriggerInput');
+    if(source) source.value=sourceText;
+    if(problem) problem.value=problemText;
+    if($n('reviewDateInput')) $n('reviewDateInput').value=key;
+    openReviewPanelIfClosed();
+    const target=rule||mistake||trigger||problem||source;
+    if(target){
+      target.scrollIntoView({behavior:'smooth',block:'center'});
+      setTimeout(()=>target.focus(),250);
+    }
+    const status=$n('problemCheckStatus');
+    if(status) status.textContent=`오답카드 입력폼 자동입력 완료 · ${sourceText} · ${problemText}`;
+    toast('오답카드 입력폼에 자동 입력했습니다');
+  }
+  function enhanceProblemRows(){
+    const rows=document.querySelectorAll('.problem-check-row');
+    rows.forEach(row=>{
+      if(row.querySelector('.problem-note-btn')) return;
+      const cb=row.querySelector('input.problem-check');
+      if(!cb || !cb.dataset.id) return;
+      const info=parseProblemId(cb.dataset.id);
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='problem-note-btn';
+      btn.textContent='오답노트';
+      btn.title='이 문제 정보로 암기카드 입력폼 자동 채우기';
+      btn.dataset.problemId=info.raw;
+      btn.addEventListener('click',function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if(typeof e.stopImmediatePropagation==='function') e.stopImmediatePropagation();
+        prefillCardFromProblem(parseProblemId(this.dataset.problemId));
+      },true);
+      row.appendChild(btn);
+    });
+  }
+  function install(){
+    enhanceProblemRows();
+    const box=$n('problemChecklistBox');
+    if(box && !box.dataset.noteAutofillObserver){
+      box.dataset.noteAutofillObserver=VERSION;
+      const mo=new MutationObserver(()=>enhanceProblemRows());
+      mo.observe(box,{childList:true,subtree:true});
+    }
+    document.addEventListener('click',function(e){
+      if(e.target.closest('.day[data-date]') || e.target.closest('#saveDayBtn') || e.target.closest('#saveProblemChecksBtn') || e.target.closest('#sendUncheckedToBacklogBtn')){
+        setTimeout(enhanceProblemRows,60);
+        setTimeout(enhanceProblemRows,250);
+      }
+    },true);
+    ['taxDaySelect','financialDaySelect','costDaySelect'].forEach(id=>{
+      const el=$n(id);
+      if(el && !el.dataset.noteAutofillBound){
+        el.dataset.noteAutofillBound='1';
+        el.addEventListener('change',()=>{setTimeout(enhanceProblemRows,60);setTimeout(enhanceProblemRows,250);},true);
+      }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',install);
+  else install();
+  setTimeout(enhanceProblemRows,500);
 })();
 </script>
 
